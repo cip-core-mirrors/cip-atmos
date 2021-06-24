@@ -1,0 +1,23 @@
+#!/usr/bin/env variant
+# vim: filetype=hcl
+
+job "vendor generate" {
+  description = "Run 'vendor install' command"
+
+  option "command" {
+    default     = "vendir-generator"
+    type        = string
+    description = "Command to execute, e.g. 'vendir-generator', or path to the command, e.g. '/usr/bin/vendir-generator'"
+  }
+
+  parameter "conf-file" {
+    type        = string
+    description = "Conf file"
+  }
+
+  run "vendor subcommand" {
+    command      = opt.command
+    subcommand   = ""
+    args         = param.conf-file
+  }
+}
