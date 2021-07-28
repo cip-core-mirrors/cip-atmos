@@ -1,4 +1,4 @@
-ARG VERSION=0.145.1
+ARG VERSION=0.141.0
 ARG OS=alpine
 ARG CLI_NAME=atmos
 
@@ -58,6 +58,12 @@ RUN apk add -u terraform-0.12@cloudposse==0.12.30-r0 terraform-0.13@cloudposse==
 # `terraform-0.12`, `terraform-0.13` or `terraform-0.15` to be explicit when needed.
 RUN update-alternatives --set terraform /usr/share/terraform/0.14/bin/terraform
 
+# https://github.com/Versent/saml2aws#linux
+RUN apk add saml2aws@cloudposse
+
+# Install assume-role
+RUN apk add assume-role@cloudposse
+
 # Install vendir
 RUN apk add vendir@cloudposse
 
@@ -69,7 +75,8 @@ RUN update-alternatives --set variant /usr/share/variant/2/bin/variant
 ARG CLI_NAME
 COPY --from=cli /usr/cli/$CLI_NAME /usr/local/bin
 
-ADD https://github.com/cip-core-mirrors/vendir-generator/releases/download/0.1.0/vendir-generator /usr/local/bin
-RUN chmod +x /usr/local/bin/vendir-generator
+ADD https://github.com/cip-core-mirrors/vendir-generator/releases/download/1.0.3/vendir-generator-linux.tar.gz /tmp
+RUN tar -xzvf /tmp/vendir-generator-linux.tar.gz -C /usr/local/bin && \
+    chmod +x /usr/local/bin/vendir-generator
 
 WORKDIR /
