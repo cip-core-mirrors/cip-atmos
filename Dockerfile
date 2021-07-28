@@ -38,7 +38,7 @@ ENV AWS_VAULT_ENABLED=true
 ENV GEODESIC_TF_PROMPT_ACTIVE=false
 ENV DIRENV_ENABLED=false
 
-ENV DOCKER_IMAGE="cloudposse/atmos"
+ENV DOCKER_IMAGE="quay.io/cipcore/cip-atmos"
 ENV DOCKER_TAG="latest"
 
 # Geodesic banner
