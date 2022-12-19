@@ -1,8 +1,11 @@
-ARG VERSION=0.141.0
+# Geodesic image version for target image
+ARG VERSION=1.6.0
+# Geodesic image version for cli build image
+ARG VERSION_CLI_BUILD=0.148.0
 ARG OS=alpine
 ARG CLI_NAME=atmos
 
-FROM cloudposse/geodesic:$VERSION-$OS as cli
+FROM cloudposse/geodesic:$VERSION_CLI_BUILD-$OS as cli
 
 RUN apk add -u go variant2@cloudposse
 
@@ -17,14 +20,12 @@ ENV PATH /go/bin:$PATH
 # RUN variant2 export binary $PWD variant-echo
 
 # Build the CLI
-WORKDIR /usr/cli
-COPY cli/ .
 ARG CGO_ENABLED=1
 ARG CLI_NAME
-RUN variant2 export binary $PWD $CLI_NAME
-
-# Verify the CLI
-RUN ./"$CLI_NAME" help
+WORKDIR /usr/cli
+COPY cli/ .
+RUN variant2 export binary $PWD $CLI_NAME && \
+    ./"$CLI_NAME" help
 
 
 FROM cloudposse/geodesic:$VERSION-$OS
@@ -34,7 +35,7 @@ ENV MOTD_URL="https://cip-core.github.io/motd/geodesic.txt"
 
 # Some configuration options for Geodesic
 ENV AWS_SAML2AWS_ENABLED=true
-ENV AWS_VAULT_ENABLED=true
+ENV AWS_VAULT_ENABLED=false
 ENV GEODESIC_TF_PROMPT_ACTIVE=false
 ENV DIRENV_ENABLED=false
 
@@ -50,30 +51,23 @@ ENV AWS_SDK_LOAD_CONFIG=1
 ENV AWS_DEFAULT_REGION=eu-west-1
 
 # Pin kubectl to version 1.17 (must be within 1 minor version of cluster version)
-RUN apk add kubectl-1.17@cloudposse
-
 # Install terraform.
-RUN apk add -u terraform-0.12@cloudposse==0.12.30-r0 terraform-0.13@cloudposse==0.13.7-r0 terraform-0.14@cloudposse==0.14.11-r0 terraform-0.15@cloudposse==0.15.4-r0
 # Set Terraform 0.14.x as the default `terraform`. You can still use
 # `terraform-0.12`, `terraform-0.13` or `terraform-0.15` to be explicit when needed.
-RUN update-alternatives --set terraform /usr/share/terraform/0.14/bin/terraform
-
 # https://github.com/Versent/saml2aws#linux
-RUN apk add saml2aws@cloudposse
-
-# Install assume-role
-RUN apk add assume-role@cloudposse
-
-# Install vendir
-RUN apk add vendir@cloudposse
-
-# Install variant2
-RUN apk add variant2@cloudposse
-RUN update-alternatives --set variant /usr/share/variant/2/bin/variant
+RUN apk add kubectl-1.23@cloudposse && \
+    apk add -u terraform-0.12@cloudposse==0.12.30-r0 terraform-0.13@cloudposse==0.13.7-r0 terraform-0.14@cloudposse==0.14.11-r0 terraform-0.15@cloudposse==0.15.4-r0 && \
+    update-alternatives --set terraform /usr/share/terraform/0.14/bin/terraform && \
+    apk add saml2aws@cloudposse && \
+    apk add assume-role@cloudposse && \
+    apk add vendir@cloudposse && \
+    apk add variant2@cloudposse && \
+    update-alternatives --set variant /usr/share/variant/2/bin/variant
 
 # Install CLI
 ARG CLI_NAME
 COPY --from=cli /usr/cli/$CLI_NAME /usr/local/bin
+RUN $CLI_NAME help
 
 ADD https://github.com/cip-core-mirrors/vendir-generator/releases/download/1.0.3/vendir-generator-linux.tar.gz /tmp
 RUN tar -xzvf /tmp/vendir-generator-linux.tar.gz -C /usr/local/bin && \
