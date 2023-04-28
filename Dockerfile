@@ -1,5 +1,5 @@
 # Geodesic image version for target image
-ARG VERSION=1.8.0
+ARG VERSION=2.1.2
 # Geodesic image version for cli build image
 ARG VERSION_CLI_BUILD=0.148.0
 ARG OS=alpine
@@ -73,6 +73,7 @@ RUN apk add kubectl-1.25@cloudposse && \
     apk add vendir@cloudposse && \
     apk add variant2@cloudposse && \
     apk add atmos@cloudposse && \
+    apk add k9s && \
     update-alternatives --set variant /usr/share/variant/2/bin/variant
 
 ADD https://github.com/cip-core-mirrors/vendir-generator/releases/download/1.0.3/vendir-generator-linux.tar.gz /tmp
@@ -81,7 +82,21 @@ RUN tar -xzvf /tmp/vendir-generator-linux.tar.gz -C /usr/local/bin && \
 
 #RUN sh -c "$(curl -sSL https://git.io/install-kubent)"
 
-# Adding kubectl plugins
+# Add Kubectl krew plugin manager
+RUN set -x && \
+    TMPDIR="$(mktemp -d)" && \
+    cd $TMPDIR && \
+    OS="$(uname | tr '[:upper:]' '[:lower:]')" && \
+    ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" && \
+    KREW="krew-${OS}_${ARCH}" && \
+    curl -fsSLO "https://github.com/kubernetes-sigs/krew/releases/latest/download/${KREW}.tar.gz" && \
+    tar zxvf "${KREW}.tar.gz" && \
+    ./"${KREW}" install krew && \
+    cd ${WORKSPACE_DIR} && \
+    rm -rf $TMPDIR && \
+    echo 'export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"' >> /etc/profile.d/kubectl-krew.sh 
+
+# Adding kubectl plugins not available from krew marketplace
 RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl-convert" && \
     install -o root -g root -m 0755 kubectl-convert /usr/local/bin/kubectl-convert
 
