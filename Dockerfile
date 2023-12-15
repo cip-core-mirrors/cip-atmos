@@ -1,5 +1,5 @@
 # Geodesic image version for target image
-ARG VERSION=2.5.1
+ARG VERSION=2.8.0
 # Geodesic image version for cli build image
 ARG VERSION_CLI_BUILD=0.148.0
 ARG OS=alpine
@@ -65,9 +65,8 @@ ENV AWS_DEFAULT_REGION=eu-west-1
 # Set Terraform 0.14.x as the default `terraform`. You can still use `terraform-1`
 # `terraform-0.12`, `terraform-0.13` or `terraform-0.15` to be explicit when needed.
 # https://github.com/Versent/saml2aws#linux
-RUN apk add kubectl-1.27@cloudposse && \
-    apk add -u terraform-0.12@cloudposse==0.12.30-r0 terraform-0.13@cloudposse==0.13.7-r0 terraform-0.14@cloudposse==0.14.11-r0 terraform-0.15@cloudposse==0.15.4-r0 terraform-1@cloudposse && \
-    update-alternatives --set terraform /usr/share/terraform/0.14/bin/terraform && \
+RUN apk add kubectl-1.28@cloudposse && \
+    apk add -u terraform-0.13@cloudposse==0.13.7-r0 && \
     apk add saml2aws@cloudposse && \
     apk add assume-role@cloudposse && \
     apk add vendir@cloudposse && \
@@ -106,8 +105,8 @@ RUN helm plugin install https://github.com/helm/helm-mapkubeapis
 # Adding velero backup tool
 RUN TMPDIR="$(mktemp -d)" && \
     cd $TMPDIR && \
-    curl -fsSLO "https://github.com/vmware-tanzu/velero/releases/download/v1.12.0/velero-v1.12.0-linux-amd64.tar.gz" && \
-    tar zxvf "velero-v1.12.0-linux-amd64.tar.gz" --strip-components=1 && \
+    curl -fsSLO "https://github.com/vmware-tanzu/velero/releases/download/v1.12.2/velero-v1.12.2-linux-amd64.tar.gz" && \
+    tar zxvf "velero-v1.12.2-linux-amd64.tar.gz" --strip-components=1 && \
     mv velero /usr/local/bin && \
     cd ${WORKSPACE_DIR} && \
     rm -rf $TMPDIR
